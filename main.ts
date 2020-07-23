@@ -1,6 +1,6 @@
 import { HttpRequest } from './common/http-request.ts';
 import { Controller } from './decorators/controller.ts';
-import { Mapping } from './decorators/mapping.ts';
+import { Get, Mapping, Post } from './decorators/mapping.ts';
 import { HttpMethod } from './common/http.ts';
 import { ReverbApplication } from './core/app.ts';
 import { Body, Param, RequestHeaders } from './decorators/parameter.ts';
@@ -11,12 +11,12 @@ import './util/reflect.ts';
 @Controller("/api")
 class TestController {
 
-    @Mapping(HttpMethod.GET, "/test")
+    @Get("/test")
     get(@Body() body: string, @RequestHeaders() headers: string) {
         console.log("test was run")
     }
 
-    @Mapping(HttpMethod.GET)
+    @Post("/test")
     get2(@Body() body: string) {
         console.log(body)
     }
