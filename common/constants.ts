@@ -7,3 +7,9 @@ export const MODULE_METADATA = {
     CONTROLLERS: 'controllers',
     EXPORTS: 'exports',
 };
+export const COMPONENT_TYPE = {
+    PARAMETER: '__parameter__',
+    CONTROLLER: '__controller__',
+    MAPPING: '__mapping__',
+    MODULE: '__module__'
+};

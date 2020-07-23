@@ -12,13 +12,22 @@ import './util/reflect.ts';
 class TestController {
 
     @Mapping(HttpMethod.GET, "/test")
-    get() {
+    get(@Body() body: string) {
         console.log("test was run")
     }
 
-    @Mapping(HttpMethod.GET, "/test2")
+    @Mapping(HttpMethod.GET)
     get2(@Body() body: string) {
         console.log(body)
+    }
+
+    @Mapping(HttpMethod.GET, "/users")
+    users(@Body() body: string) {
+        console.log(body)
+    }
+
+    notMapping() {
+        console.log("this is not a mapping")
     }
 }
 

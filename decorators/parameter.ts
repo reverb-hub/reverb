@@ -1,4 +1,5 @@
 import { ROUTE_ARGS_METADATA } from '../common/constants.ts';
+import { COMPONENT_TYPE } from '../common/constants.ts';
 
 export enum RouteParamtypes {
     REQUEST,
@@ -38,11 +39,9 @@ export function assignMetadata<TParamtype = any, TArgs = any>(
 
 export function Parameter(paramtype: RouteParamtypes) {
     return (data?: ParamData): ParameterDecorator => (target, key, index) => {
-        const args =
-            Reflect.getMetadata(ROUTE_ARGS_METADATA, target.constructor, key) || {};
-        Reflect.defineMetadata(
-            ROUTE_ARGS_METADATA,
-            assignMetadata<RouteParamtypes, Record<number, RouteParamMetadata>>(
+        const args = Reflect.getMetadata(ROUTE_ARGS_METADATA, target.constructor, key) || {};
+        Reflect.defineMetadata(COMPONENT_TYPE.PARAMETER, true, target.constructor);
+        Reflect.defineMetadata(ROUTE_ARGS_METADATA, assignMetadata<RouteParamtypes, Record<number, RouteParamMetadata>>(
                 args,
                 paramtype,
                 index,
