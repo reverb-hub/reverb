@@ -4,35 +4,81 @@ import { isConstructor, isMethod } from '../util/check.ts';
 import { HttpMethod } from '../common/http.ts';
 import { ServerRequest, Response } from '../deps.ts';
 
-interface PlaceHolderHandler {
-    (req: ServerRequest): Response
+interface RouteRecord {
+    handler(...args: any): any;
+    // TODO use same type as metadata for ROUTE_ARGS_METADATA returns here
+    argsMetadata: any;
 }
 
-interface RouteMap {
-    [r: string]: Route
-}
+type RoutesObject = { [path: string]: RouteSector };
 
-interface Route {
-    methods?: {
-        [key in HttpMethod]?: PlaceHolderHandler
-    };
-    subRoutes: RouteMap;
+class RouteSector {
+    methods: {
+        [key in HttpMethod]?: RouteRecord
+    } = {};
+    public subSectors: RoutesObject = {}
+    constructor(route?: [HttpMethod, RouteRecord]) {
+        if (route) {
+            this.methods[route[0]] = route[1];
+        }
+    }
+
+    addRoute(path: Array<string>, method: HttpMethod, record: RouteRecord) {
+        if (path.length <= 0) {
+            this.addMethod(method, record);
+        }
+        const subPath = path.shift()!;
+        if (!this.subSectors[subPath]) {
+            if (path.length <= 0) {
+                this.subSectors[subPath] = new RouteSector([method, record]);
+                return;
+            } else {
+                this.subSectors[subPath] = new RouteSector()
+            }
+        }
+        if (path.length <= 0) {
+            this.subSectors[subPath].addMethod(method, record);
+        } else {
+            this.subSectors[subPath].addRoute(path, method, record);
+        }
+    }
+
+    addMethod(method: HttpMethod, record: RouteRecord) {
+        if (this.methods[method]) {
+            throw "Method already used for this route";
+        }
+        this.methods[method] = record;
+    }
+
+    resolveSubRoute(path: Array<string>, method: HttpMethod): RouteRecord {
+        if (path.length <= 0) {
+            return this.methods[method]!;
+        }
+        const subPath = path.shift()!;
+        if (this.subSectors[subPath]) {
+            if (path.length <= 0) {
+                return this.subSectors[subPath].methods[method]!;
+            } else {
+                return this.subSectors[subPath].resolveSubRoute(path, method);
+            }
+        } else {
+            throw "Route not found/404";
+        }
+    }
 }
 
 export class RouteResolver {
-    private readonly routes: RouteMap;
+    private readonly routeMap: RouteSector = new RouteSector();
     constructor(private appModule: Type<any>) {
-        this.routes = this.resolveRoutes();
+        this.resolveRoutes();
     }
 
-    private resolveRoutes(): RouteMap {
+    private resolveRoutes() {
         if (Reflect.getMetadata(COMPONENT_TYPE.MODULE, this.appModule) !== true) {
             throw "non module supplied"
         }
 
         const controllers = Reflect.getMetadata(MODULE_METADATA.CONTROLLERS, this.appModule)
-
-        const routeMap: RouteMap = {};
 
         controllers.forEach((controller: Type<any>) => {
             if (Reflect.getMetadata(COMPONENT_TYPE.CONTROLLER, controller) !== true) {
@@ -46,31 +92,28 @@ export class RouteResolver {
             })
 
             methods.forEach((method) => {
-                const mappingPath = Reflect.getMetadata(PATH_METADATA, controller.prototype[method])
-                const existingRoute = routeMap[path + mappingPath];
+                const mappingPath = Reflect.getMetadata(PATH_METADATA, controller.prototype[method]);
+                const fullPathSections = (path + mappingPath).split("/");
+                fullPathSections.shift();
                 const methodType: HttpMethod = Reflect.getMetadata(METHOD_METADATA, controller.prototype[method]);
                 // TODO include this in routes
                 const paramMetadata = Reflect.getMetadata(ROUTE_ARGS_METADATA, controller.prototype.constructor, method)
-                if (existingRoute && existingRoute.methods && existingRoute.methods[methodType]) {
-                    // TODO expand this error message
-                    throw "Route defined twice";
-                }
-                routeMap[path + mappingPath] = {
-                    methods: {
-                        [methodType]: controllerInstance[method],
-                        ...existingRoute?.methods
-                    },
-                    subRoutes: {
-                        ...existingRoute?.subRoutes
-                    }
-                };
+                console.log(`Adding new route ${fullPathSections} ${paramMetadata}`)
+                this.routeMap.addRoute(fullPathSections, methodType, {
+                    handler: controllerInstance[method] as (...args: any) => any,
+                    argsMetadata: paramMetadata,
+                });
             })
         })
+    }
 
-        return routeMap
+    resolveRoute(uri: string, method: HttpMethod): RouteRecord {
+        const sections = uri.split("/");
+        sections.shift();
+        return this.routeMap.resolveSubRoute(sections, method);
     }
 
     printRoutes() {
-        console.log(this.routes);
+        console.log(this.routeMap);
     }
 }
