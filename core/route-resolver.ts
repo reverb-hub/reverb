@@ -1,5 +1,5 @@
 import { Type } from '../decorators/module.ts';
-import { COMPONENT_TYPE, MODULE_METADATA, PATH_METADATA } from '../common/constants.ts';
+import { COMPONENT_TYPE, MODULE_METADATA, PATH_METADATA, ROUTE_ARGS_METADATA } from '../common/constants.ts';
 import { isConstructor, isMethod } from '../util/check.ts';
 
 
@@ -28,6 +28,7 @@ export class RouteResolver {
 
             methods.forEach((method) => {
                 const mappingPath = Reflect.getMetadata(PATH_METADATA, controller.prototype[method])
+                const paramMetadata = Reflect.getMetadata(ROUTE_ARGS_METADATA, controller.prototype.constructor, method)
                 controllerMappings.set(path + mappingPath, [controllerInstance, method])
             })
         })

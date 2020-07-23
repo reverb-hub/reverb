@@ -53,8 +53,6 @@ export function Parameter(paramtype: RouteParamtypes) {
     };
 }
 
-export function Body(
-    property?: string,
-): ParameterDecorator {
-    return Parameter(RouteParamtypes.BODY)(property);
-}
+export const RequestHeaders: () => ParameterDecorator = Parameter(RouteParamtypes.HEADERS);
+export const Param: (parameter: string) => ParameterDecorator = Parameter(RouteParamtypes.PARAM);
+export const Body: () => ParameterDecorator = Parameter(RouteParamtypes.BODY);
