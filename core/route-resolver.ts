@@ -1,5 +1,5 @@
 import { Type } from '../decorators/module.ts';
-import { COMPONENT_TYPE, MODULE_METADATA, PATH_METADATA, METHOD_METADATA } from '../common/constants.ts';
+import { COMPONENT_TYPE, MODULE_METADATA, PATH_METADATA, METHOD_METADATA, ROUTE_ARGS_METADATA } from '../common/constants.ts';
 import { isConstructor, isMethod } from '../util/check.ts';
 import { HttpMethod } from '../common/http.ts';
 import { ServerRequest, Response } from '../deps.ts';
@@ -49,21 +49,28 @@ export class RouteResolver {
                 const mappingPath = Reflect.getMetadata(PATH_METADATA, controller.prototype[method])
                 const existingRoute = routeMap[path + mappingPath];
                 const methodType: HttpMethod = Reflect.getMetadata(METHOD_METADATA, controller.prototype[method]);
-                if (existingRoute.methods && existingRoute.methods[methodType]) {
+                // TODO include this in routes
+                const paramMetadata = Reflect.getMetadata(ROUTE_ARGS_METADATA, controller.prototype.constructor, method)
+                if (existingRoute && existingRoute.methods && existingRoute.methods[methodType]) {
                     // TODO expand this error message
                     throw "Route defined twice";
                 }
                 routeMap[path + mappingPath] = {
                     methods: {
-                        [methodType]: controllerInstance[method]
+                        [methodType]: controllerInstance[method],
+                        ...existingRoute?.methods
                     },
                     subRoutes: {
-                        ...existingRoute.subRoutes
+                        ...existingRoute?.subRoutes
                     }
                 };
             })
         })
 
         return routeMap
+    }
+
+    printRoutes() {
+        console.log(this.routes);
     }
 }

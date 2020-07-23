@@ -6,14 +6,11 @@ const decoder = new TextDecoder();
 
 export class ReverbApplication {
     private routeResolver: RouteResolver;
-    private mappings: Map<string, [Type<any>, string]>;
 
     constructor(appModule: Type<any>) {
         this.routeResolver = new RouteResolver(appModule)
 
-        this.mappings = this.routeResolver.resolveRoutes()
-
-        console.log(this.mappings)
+        this.routeResolver.printRoutes();
     }
 
     response = new TextEncoder().encode(

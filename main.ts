@@ -26,6 +26,11 @@ class TestController {
         console.log(body)
     }
 
+    @Mapping(HttpMethod.POST, "/users")
+    createUsers(@Body() body: string) {
+        console.log(body)
+    }
+
     notMapping() {
         console.log("this is not a mapping")
     }
