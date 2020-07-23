@@ -1,4 +1,4 @@
-import { readRequest, BufReader } from '../deps.ts';
+import { BufReader, readRequest } from '../deps.ts';
 import { Type } from '../decorators/module.ts';
 import { RouteResolver } from './route-resolver.ts';
 import { HttpMethod } from '../common/http.ts';
@@ -48,10 +48,10 @@ export class ReverbApplication {
                 lineRes = await bodyReader.readLine();
             }
             // @ts-ignore
-            const mapping = this.mappings.get(parsedRequest.url)
+            const mapping = this.routeResolver.resolveRoute(parsedRequest.url, HttpMethod[parsedRequest.method])
             if (mapping) {
                 // @ts-ignore
-                mapping[0][mapping[1]](bodyText)
+                console.log(mapping)
                 await conn.write(this.response);
                 console.log(`200`);
             } else {

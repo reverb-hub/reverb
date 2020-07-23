@@ -6,14 +6,37 @@ import { ReverbApplication } from './core/app.ts';
 import { Body, Param, RequestHeaders } from './decorators/parameter.ts';
 import { Module } from './decorators/module.ts';
 import './util/reflect.ts';
+import { Injectable } from './decorators/injectable.ts';
+import { Injector } from './core/injector.ts';
 
+@Injectable()
+class AppService {
+
+    log() {
+        console.log("log from app service")
+    }
+
+}
+
+@Injectable()
+class UserService {
+
+    log() {
+        console.log("log from user service")
+    }
+
+}
 
 @Controller("/api")
 class TestController {
 
+    constructor(private appService: AppService, private userService: UserService) {
+    }
+
     @Get("/test")
     get(@Body() body: string, @RequestHeaders() headers: string) {
-        console.log("test was run")
+        this.appService.log()
+        this.userService.log()
     }
 
     @Post("/test")
@@ -37,7 +60,8 @@ class TestController {
 }
 
 @Module({
-    controllers: [TestController]
+    controllers: [TestController],
+    providers: [AppService]
 })
 class AppModule { }
 
