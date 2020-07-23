@@ -11,7 +11,7 @@ export const Mapping = (
         key: string | symbol,
         descriptor: TypedPropertyDescriptor<any>,
     ) => {
-        Reflect.defineMetadata(PATH_METADATA, path, descriptor.value);
+        Reflect.defineMetadata(PATH_METADATA, path || "", descriptor.value);
         Reflect.defineMetadata(METHOD_METADATA, method, descriptor.value);
         Reflect.defineMetadata(COMPONENT_TYPE.MAPPING, true, descriptor.value);
         return descriptor;

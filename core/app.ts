@@ -6,11 +6,14 @@ const decoder = new TextDecoder();
 
 export class ReverbApplication {
     private routeResolver: RouteResolver;
+    private mappings: Map<string, [Type<any>, string]>;
 
     constructor(appModule: Type<any>) {
         this.routeResolver = new RouteResolver(appModule)
 
-        this.routeResolver.resolveRoutes()
+        this.mappings = this.routeResolver.resolveRoutes()
+
+        console.log(this.mappings)
     }
 
     response = new TextEncoder().encode(
@@ -21,6 +24,7 @@ export class ReverbApplication {
         const listener = Deno.listen({ hostname: host, port: port });
         console.log(`Listening on ${host}:${port}`);
         for await (const conn of listener) {
+            console.log(`Listening on ${host}:${port}`);
             this.handle(conn);
         }
     }
@@ -40,9 +44,9 @@ export class ReverbApplication {
                 bodyText += lineText + "\n";
                 lineRes = await bodyReader.readLine();
             }
-            console.log({
-                body: bodyText
-            });
+            console.log(parsedRequest)
+            // @ts-ignore
+            const mapping = this.mappings[parsedRequest]
             await conn.write(this.response);
         } finally {
             conn.close();
