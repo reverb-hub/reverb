@@ -14,6 +14,7 @@ export class ReverbApplication {
         this.routeResolver.printRoutes();
 
         console.log(this.routeResolver.resolveRoute("/api/test", HttpMethod.POST));
+        console.log(this.routeResolver.resolveRoute("/api/users/10", HttpMethod.GET));
     }
 
     response = new TextEncoder().encode(

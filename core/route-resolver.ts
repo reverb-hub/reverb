@@ -12,11 +12,17 @@ interface RouteRecord {
 
 type RoutesObject = { [path: string]: RouteSector };
 
+interface RouteResolution {
+    route: RouteRecord;
+    pathVariables?: { [name: string]: string };
+}
+
 class RouteSector {
     methods: {
         [key in HttpMethod]?: RouteRecord
     } = {};
-    public subSectors: RoutesObject = {}
+    public staticSectors: RoutesObject = {}
+    public varSectors: RoutesObject = {};
     constructor(route?: [HttpMethod, RouteRecord]) {
         if (route) {
             this.methods[route[0]] = route[1];
@@ -26,21 +32,22 @@ class RouteSector {
     addRoute(path: Array<string>, method: HttpMethod, record: RouteRecord) {
         if (path.length <= 0) {
             this.addMethod(method, record);
-        }
-        const subPath = path.shift()!;
-        if (!this.subSectors[subPath]) {
-            if (path.length <= 0) {
-                this.subSectors[subPath] = new RouteSector([method, record]);
-                return;
+        } else {
+            const subPath = path.shift()!;
+            if (subPath.startsWith("{") && subPath.endsWith("}")) {
+                const varName = subPath.replaceAll("{", "").replaceAll("}", "");
+                if (!this.varSectors[varName]) {
+                    this.varSectors[varName] = new RouteSector();
+                }
+                this.varSectors[varName].addRoute(path, method, record);
             } else {
-                this.subSectors[subPath] = new RouteSector()
+                if (!this.staticSectors[subPath]) {
+                    this.staticSectors[subPath] = new RouteSector();
+                }
+                this.staticSectors[subPath].addRoute(path, method, record);
             }
         }
-        if (path.length <= 0) {
-            this.subSectors[subPath].addMethod(method, record);
-        } else {
-            this.subSectors[subPath].addRoute(path, method, record);
-        }
+        
     }
 
     addMethod(method: HttpMethod, record: RouteRecord) {
@@ -50,19 +57,35 @@ class RouteSector {
         this.methods[method] = record;
     }
 
-    resolveSubRoute(path: Array<string>, method: HttpMethod): RouteRecord {
+    resolveSubRoute(path: Array<string>, method: HttpMethod, pathVariables: { [name: string]: string } = {}): RouteResolution {
         if (path.length <= 0) {
-            return this.methods[method]!;
-        }
-        const subPath = path.shift()!;
-        if (this.subSectors[subPath]) {
-            if (path.length <= 0) {
-                return this.subSectors[subPath].methods[method]!;
-            } else {
-                return this.subSectors[subPath].resolveSubRoute(path, method);
-            }
+            return {
+                route: this.methods[method]!,
+                pathVariables
+            };
         } else {
-            throw "Route not found/404";
+            const subPath = path.shift()!;
+            const varSectors = Object.keys(this.varSectors);
+            if (varSectors.length >= 1) {
+                let routeFinal: RouteResolution | undefined = undefined;
+                for (const sector of varSectors) {
+                    try {
+                        const route = this.varSectors[sector].resolveSubRoute(path, method, {
+                            [sector]: subPath,
+                            ...pathVariables
+                        });
+                        if (routeFinal != undefined) {
+                            throw "Multiple correct route resolutions!";
+                        }
+                        return route;
+                    } catch {}
+                }
+            }
+            if (this.staticSectors[subPath]) {
+                return this.staticSectors[subPath].resolveSubRoute(path, method, pathVariables);
+            } else {
+                throw "Route not found/404";
+            }
         }
     }
 }
@@ -98,7 +121,6 @@ export class RouteResolver {
                 const methodType: HttpMethod = Reflect.getMetadata(METHOD_METADATA, controller.prototype[method]);
                 // TODO include this in routes
                 const paramMetadata = Reflect.getMetadata(ROUTE_ARGS_METADATA, controller.prototype.constructor, method)
-                console.log(`Adding new route ${fullPathSections} ${paramMetadata}`)
                 this.routeMap.addRoute(fullPathSections, methodType, {
                     handler: controllerInstance[method] as (...args: any) => any,
                     argsMetadata: paramMetadata,
@@ -107,7 +129,7 @@ export class RouteResolver {
         })
     }
 
-    resolveRoute(uri: string, method: HttpMethod): RouteRecord {
+    resolveRoute(uri: string, method: HttpMethod): RouteResolution {
         const sections = uri.split("/");
         sections.shift();
         return this.routeMap.resolveSubRoute(sections, method);
