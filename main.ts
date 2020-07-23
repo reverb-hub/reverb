@@ -20,6 +20,10 @@ class TestController {
     get2(@Body() body: string) {
         console.log(body)
     }
+
+    notMapping() {
+        console.log("this is not a mapping")
+    }
 }
 
 @Module({

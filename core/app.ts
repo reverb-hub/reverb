@@ -1,12 +1,14 @@
 import { RequestParser } from '../http/parser.ts';
 import { Type } from '../decorators/module.ts';
-import { MODULE_METADATA, PATH_METADATA } from '../common/constants.ts';
+import { RouteResolver } from './route-resolver.ts';
 
 export class ReverbApplication {
+    private routeResolver: RouteResolver;
+
     constructor(appModule: Type<any>) {
-        const controllers = Reflect.getMetadata(MODULE_METADATA.CONTROLLERS, appModule)
-        console.log(Reflect.getMetadataKeys(new controllers[0]()))
-        console.log(Object.getOwnPropertyNames(controllers[0].prototype))
+        this.routeResolver = new RouteResolver(appModule)
+
+        this.routeResolver.resolveRoutes()
     }
 
     response = new TextEncoder().encode(

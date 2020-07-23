@@ -23,11 +23,23 @@ export const isPlainObject = (func: any): func is object => {
     );
 };
 
+export const isMethod = (prototype: object, prop: string) => {
+    const descriptor = Object.getOwnPropertyDescriptor(prototype, prop);
+    // @ts-ignore
+    if (descriptor.set || descriptor.get) {
+        return false;
+    }
+    // @ts-ignore
+    // @ts-ignore
+    return !isConstructor(prop) && isFunction(prototype[prop]);
+}
+
 export const validatePath = (path?: string): string =>
     path ? (path.charAt(0) !== '/' ? '/' + path : path) : '';
 
 export const isFunction = (func: any): boolean => typeof func === 'function';
 export const isString = (func: any): func is string => typeof func === 'string';
+export const isConstructor = (func: any): boolean => func === 'constructor';
 export const isNull = (obj: any): obj is null | undefined => isUndefined(obj) || obj === null;
 export const isEmpty = (array: any): boolean => !(array && array.length > 0);
 export const isSymbol = (func: any): func is symbol => typeof func === 'symbol';

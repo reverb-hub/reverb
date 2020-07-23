@@ -1,4 +1,5 @@
 import { MODULE_METADATA as metadataConstants } from '../common/constants.ts';
+import { COMPONENT_TYPE } from '../common/constants.ts';
 
 export interface Type<T> extends Function {
     new (...args: any[]): T;
@@ -15,6 +16,7 @@ export function Module(metadata: ModuleMetadata): ClassDecorator {
     return (target: Function) => {
         for (const property in metadata) {
             if (metadata.hasOwnProperty(property)) {
+                Reflect.defineMetadata(COMPONENT_TYPE.MODULE, true, target);
                 Reflect.defineMetadata(property, (metadata as any)[property], target);
             }
         }
