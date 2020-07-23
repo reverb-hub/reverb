@@ -2,18 +2,18 @@ import { ROUTE_ARGS_METADATA } from '../common/constants.ts';
 import { COMPONENT_TYPE } from '../common/constants.ts';
 
 export enum RouteParamtypes {
-    REQUEST,
-    RESPONSE,
-    NEXT,
-    BODY,
-    QUERY,
-    PARAM,
-    HEADERS,
-    SESSION,
-    FILE,
-    FILES,
-    HOST,
-    IP,
+    REQUEST = 'REQUEST',
+    RESPONSE = 'RESPONSE',
+    NEXT = 'NEXT',
+    BODY = 'BODY',
+    QUERY = 'QUERY',
+    PARAM = 'PARAM',
+    HEADERS = 'HEADERS',
+    SESSION = 'SESSION',
+    FILE = 'FILE',
+    FILES = 'FILES',
+    HOST = 'HOST',
+    IP = 'IP',
 }
 
 export type ParamData = object | string | number;
@@ -30,7 +30,7 @@ export function assignMetadata<TParamtype = any, TArgs = any>(
 ) {
     return {
         ...args,
-        [`${paramtype}:${index}`]: {
+        [`${paramtype}`]: {
             index,
             data
         },
@@ -53,8 +53,6 @@ export function Parameter(paramtype: RouteParamtypes) {
     };
 }
 
-export function Body(
-    property?: string,
-): ParameterDecorator {
-    return Parameter(RouteParamtypes.BODY)(property);
-}
+export const RequestHeaders: (header?: string) => ParameterDecorator = Parameter(RouteParamtypes.HEADERS);
+export const Param: (parameter: string) => ParameterDecorator = Parameter(RouteParamtypes.PARAM);
+export const Body: () => ParameterDecorator = Parameter(RouteParamtypes.BODY);
