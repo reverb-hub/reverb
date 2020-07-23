@@ -12,11 +12,11 @@ import './util/reflect.ts';
 class TestController {
 
     @Mapping(HttpMethod.GET, "/test")
-    get() {
+    get(@Body() body: string) {
         console.log("test was run")
     }
 
-    @Mapping(HttpMethod.GET, )
+    @Mapping(HttpMethod.GET)
     get2(@Body() body: string) {
         console.log(body)
     }
