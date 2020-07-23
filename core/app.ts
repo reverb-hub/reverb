@@ -1,6 +1,8 @@
-import { RequestParser } from '../http/parser.ts';
+import { readRequest, BufReader } from '../deps.ts';
 import { Type } from '../decorators/module.ts';
 import { RouteResolver } from './route-resolver.ts';
+
+const decoder = new TextDecoder();
 
 export class ReverbApplication {
     private routeResolver: RouteResolver;
@@ -24,16 +26,24 @@ export class ReverbApplication {
     }
 
     async handle(conn: Deno.Conn): Promise<void> {
-        const buffer = new Uint8Array(1024);
         try {
-            while (true) {
-                const r = await conn.read(buffer);
-                if (r === null) {
-                    break;
-                }
-                const parsedRequest = RequestParser.parseRequest(buffer);
-                await conn.write(this.response);
+            const reader = new BufReader(conn);
+            const parsedRequest = await readRequest(conn, reader);
+            if (parsedRequest == null) {
+                throw "request is null?";
             }
+            let bodyText = "";
+            const bodyReader = new BufReader(parsedRequest.body);
+            let lineRes = await bodyReader.readLine();
+            while (lineRes != null) {
+                const lineText = decoder.decode(lineRes?.line);
+                bodyText += lineText + "\n";
+                lineRes = await bodyReader.readLine();
+            }
+            console.log({
+                body: bodyText
+            });
+            await conn.write(this.response);
         } finally {
             conn.close();
         }
