@@ -1,19 +1,20 @@
 import { readRequest, BufReader } from '../deps.ts';
 import { Type } from '../decorators/module.ts';
 import { RouteResolver } from './route-resolver.ts';
+import { HttpMethod } from '../common/http.ts';
 
 const decoder = new TextDecoder();
 
 export class ReverbApplication {
     private routeResolver: RouteResolver;
-    private mappings: Map<string, [Type<any>, string]>;
 
     constructor(appModule: Type<any>) {
         this.routeResolver = new RouteResolver(appModule)
 
-        this.mappings = this.routeResolver.resolveRoutes()
+        this.routeResolver.printRoutes();
 
-        console.log(this.mappings)
+        console.log(this.routeResolver.resolveRoute("/api/test", HttpMethod.POST));
+        console.log(this.routeResolver.resolveRoute("/api/users/10", HttpMethod.GET));
     }
 
     response = new TextEncoder().encode(
