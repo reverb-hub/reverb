@@ -7,6 +7,7 @@ export interface Type<T> extends Function {
 
 export interface ModuleMetadata {
     controllers?: Type<any>[];
+    providers?: Type<any>[];
 }
 
 export function Module(metadata: ModuleMetadata): ClassDecorator {

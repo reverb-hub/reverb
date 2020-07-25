@@ -1,6 +1,7 @@
 import { Type } from '../decorators/module.ts';
 import { COMPONENT_TYPE, MODULE_METADATA, PATH_METADATA, METHOD_METADATA, ROUTE_ARGS_METADATA } from '../common/constants.ts';
 import { isConstructor, isMethod } from '../util/check.ts';
+import { Injector } from './injector.ts';
 import { HttpMethod } from '../common/http.ts';
 import { ServerRequest, Response } from '../deps.ts';
 
@@ -47,7 +48,7 @@ class RouteSector {
                 this.staticSectors[subPath].addRoute(path, method, record);
             }
         }
-        
+
     }
 
     addMethod(method: HttpMethod, record: RouteRecord) {
@@ -107,8 +108,7 @@ export class RouteResolver {
             if (Reflect.getMetadata(COMPONENT_TYPE.CONTROLLER, controller) !== true) {
                 throw "non controller in controllers"
             }
-            // TODO inject things here
-            const controllerInstance = new controller()
+            const controllerInstance = Injector.resolve<any>(controller)
             const path = Reflect.getMetadata(PATH_METADATA, controller)
             const methods = Object.getOwnPropertyNames(controller.prototype).filter((property) => {
                 return isMethod(controller.prototype, property) && (Reflect.getMetadata(COMPONENT_TYPE.MAPPING, controller.prototype[property]) === true)

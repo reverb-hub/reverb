@@ -11,5 +11,6 @@ export const COMPONENT_TYPE = {
     PARAMETER: '__parameter__',
     CONTROLLER: '__controller__',
     MAPPING: '__mapping__',
+    INJECTABLE: '__injectable__',
     MODULE: '__module__'
 };
