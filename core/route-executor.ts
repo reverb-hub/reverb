@@ -2,6 +2,7 @@ import { RouteResolution } from './route-resolver.ts';
 import { RouteArgtype } from '../decorators/parameter.ts';
 import { ServerRequest } from '../deps.ts';
 import { BodyReader } from '../common/body-reader.ts';
+import { isObject, isString } from '../util/check.ts';
 
 async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, resolution: RouteResolution, key?: string) {
     switch (arg) {
@@ -11,7 +12,7 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
         case RouteArgtype.QUERY:
             return null;
         case RouteArgtype.PARAM:
-            if (typeof key === "string") {
+            if (isString(key)) {
                 // @ts-ignore
                 return resolution.pathVariables[key];
             } else {
@@ -20,7 +21,7 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
         case RouteArgtype.HEADERS:
             return request.headers;
         case RouteArgtype.HEADER:
-            if (typeof key === "string") {
+            if (isString(key)) {
                 return request.headers.get(key);
             } else {
                 throw "Header key not defined";
@@ -38,10 +39,12 @@ export async function RouteExecutor(resolution: RouteResolution, request: Server
         throw "404"
     } else {
         const args: Array<any> = []
-        for (const arg of Object.entries(resolution.route.argsMetadata)) {
-            const [key, argMetadata] = arg
-            // @ts-ignore
-            args[argMetadata.index] = await getArgFromRequest(key as RouteArgtype, request, resolution, argMetadata.data)
+        if (isObject(resolution.route.argsMetadata)) {
+            for (const arg of Object.entries(resolution.route.argsMetadata)) {
+                const [key, argMetadata] = arg
+                // @ts-ignore
+                args[argMetadata.index] = await getArgFromRequest(key as RouteArgtype, request, resolution, argMetadata.data)
+            }
         }
         resolution.route.handler(...args)
     }

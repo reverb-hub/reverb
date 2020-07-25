@@ -123,7 +123,7 @@ export class RouteResolver {
                 // TODO include this in routes
                 const paramMetadata = Reflect.getMetadata(ROUTE_ARGS_METADATA, controller.prototype.constructor, method)
                 this.routeMap.addRoute(fullPathSections, methodType, {
-                    handler: controllerInstance[method] as (...args: any) => any,
+                    handler: (controllerInstance[method] as (...args: any) => any).bind(controllerInstance),
                     argsMetadata: paramMetadata,
                 });
             })
