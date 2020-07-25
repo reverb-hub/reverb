@@ -3,17 +3,12 @@ import { COMPONENT_TYPE } from '../common/constants.ts';
 
 export enum RouteArgtype {
     REQUEST = 'REQUEST',
-    RESPONSE = 'RESPONSE',
-    NEXT = 'NEXT',
     BODY = 'BODY',
     QUERY = 'QUERY',
     PARAM = 'PARAM',
     HEADERS = 'HEADERS',
     SESSION = 'SESSION',
-    FILE = 'FILE',
-    FILES = 'FILES',
     HOST = 'HOST',
-    IP = 'IP',
     HEADER = "HEADER",
 }
 

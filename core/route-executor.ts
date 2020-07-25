@@ -7,10 +7,7 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
     switch (arg) {
         case RouteArgtype.REQUEST:
             return request;
-        case RouteArgtype.RESPONSE:
-            return null;
-        case RouteArgtype.NEXT:
-            return null;
+        case RouteArgtype.SESSION:
         case RouteArgtype.QUERY:
             return null;
         case RouteArgtype.PARAM:
@@ -28,17 +25,9 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
             } else {
                 throw "Header key not defined";
             }
-        case RouteArgtype.SESSION:
-            return null;
-        case RouteArgtype.FILE:
-            return null;
-        case RouteArgtype.FILES:
-            return null;
         case RouteArgtype.HOST:
             // @ts-ignore
             return request.headers.host;
-        case RouteArgtype.IP:
-            return null;
         case RouteArgtype.BODY:
             return await BodyReader(request);
     }
