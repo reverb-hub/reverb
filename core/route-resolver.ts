@@ -13,7 +13,7 @@ interface RouteRecord {
 
 type RoutesObject = { [path: string]: RouteSector };
 
-interface RouteResolution {
+export interface RouteResolution {
     route: RouteRecord;
     pathVariables?: { [name: string]: string };
 }
@@ -36,6 +36,7 @@ class RouteSector {
         } else {
             const subPath = path.shift()!;
             if (subPath.startsWith("{") && subPath.endsWith("}")) {
+                // @ts-ignore
                 const varName = subPath.replaceAll("{", "").replaceAll("}", "");
                 if (!this.varSectors[varName]) {
                     this.varSectors[varName] = new RouteSector();

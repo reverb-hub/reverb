@@ -2,6 +2,8 @@
   "compilerOptions": {
     "noImplicitAny": true,
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "lib": [ "dom", "dom.iterable", "esnext", "deno.ns" ],
+    "target": "esnext"
   }
 }

@@ -2,8 +2,8 @@ import { BufReader, readRequest } from '../deps.ts';
 import { Type } from '../decorators/module.ts';
 import { RouteResolver } from './route-resolver.ts';
 import { HttpMethod } from '../common/http.ts';
+import { RouteExecutor } from './route-executor.ts';
 
-const decoder = new TextDecoder();
 
 export class ReverbApplication {
     private routeResolver: RouteResolver;
@@ -12,9 +12,6 @@ export class ReverbApplication {
         this.routeResolver = new RouteResolver(appModule)
 
         this.routeResolver.printRoutes();
-
-        console.log(this.routeResolver.resolveRoute("/api/test", HttpMethod.POST));
-        console.log(this.routeResolver.resolveRoute("/api/users/10", HttpMethod.GET));
     }
 
     response = new TextEncoder().encode(
@@ -39,21 +36,16 @@ export class ReverbApplication {
             if (parsedRequest == null) {
                 throw "request is null?";
             }
-            let bodyText = "";
-            const bodyReader = new BufReader(parsedRequest.body);
-            let lineRes = await bodyReader.readLine();
-            while (lineRes != null) {
-                const lineText = decoder.decode(lineRes?.line);
-                bodyText += lineText + "\n";
-                lineRes = await bodyReader.readLine();
-            }
             // @ts-ignore
             const mapping = this.routeResolver.resolveRoute(parsedRequest.url, HttpMethod[parsedRequest.method])
             if (mapping) {
-                // @ts-ignore
-                console.log(mapping)
-                await conn.write(this.response);
-                console.log(`200`);
+                try {
+                    RouteExecutor(mapping, parsedRequest)
+                    await conn.write(this.response);
+                } catch (e) {
+                    await conn.write(this.notFound);
+                    console.log(`ERROR`, parsedRequest.url, e);
+                }
             } else {
                 await conn.write(this.notFound);
                 console.log(`404`, parsedRequest.url);

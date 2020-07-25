@@ -27,40 +27,44 @@ class UserService {
 
 }
 
-@Controller("/api")
+@Controller("/api/test")
 class TestController {
 
     constructor(private appService: AppService, private userService: UserService) {
     }
 
-    @Get("/test")
-    get(@Body() body: string, @RequestHeaders() headers: string) {
+    @Get()
+    get() {
         this.appService.log()
         this.userService.log()
     }
 
-    @Post("/test")
+    @Post()
     get2(@Body() body: string) {
         console.log(body)
     }
+}
 
-    @Mapping(HttpMethod.GET, "/users/{id}")
-    users(@Body() body: string, @Param("id") id: string) {
-        console.log(body)
+@Controller("/api/users")
+class UserController {
+
+    constructor(private appService: AppService, private userService: UserService) {
     }
 
-    @Mapping(HttpMethod.POST, "/users")
-    createUsers(@Body() body: string) {
-        console.log(body)
+    @Get("/{id}")
+    users(@Param("id") id: string) {
+        console.log(id)
     }
 
-    notMapping() {
-        console.log("this is not a mapping")
+    @Post("/{id}")
+    createUsers(@Param("id") id: string, @Body() body: string) {
+        console.log("ID:", id)
+        console.log("BODY:", body)
     }
 }
 
 @Module({
-    controllers: [TestController],
+    controllers: [TestController, UserController],
     providers: [AppService]
 })
 class AppModule { }
