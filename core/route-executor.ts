@@ -13,7 +13,7 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
         case RouteArgtype.PARAM:
             if (typeof key === "string") {
                 // @ts-ignore
-                return resolution.pathVariables.get(key);
+                return resolution.pathVariables[key];
             } else {
                 throw "Param key not defined";
             }
