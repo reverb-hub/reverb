@@ -3,7 +3,7 @@ import { Controller } from './decorators/controller.ts';
 import { Get, Mapping, Post } from './decorators/mapping.ts';
 import { HttpMethod } from './common/http.ts';
 import { ReverbApplication } from './core/app.ts';
-import { Body, Param, RequestHeaders } from './decorators/parameter.ts';
+import { Body, Param, RequestHeader, RequestHeaders } from './decorators/parameter.ts';
 import { Module } from './decorators/module.ts';
 import './util/reflect.ts';
 import { Injectable } from './decorators/injectable.ts';
@@ -39,6 +39,11 @@ class TestController {
         this.userService.log()
     }
 
+    @Get("/headers")
+    getHeaders(@RequestHeader("host") host: string) {
+        console.log(host)
+    }
+
     @Post()
     get2(@Body() body: string) {
         console.log(body)
@@ -65,7 +70,7 @@ class UserController {
 
 @Module({
     controllers: [TestController, UserController],
-    providers: [AppService]
+    providers: [AppService, UserService]
 })
 class AppModule { }
 

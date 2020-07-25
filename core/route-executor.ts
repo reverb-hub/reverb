@@ -16,12 +16,18 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
         case RouteArgtype.PARAM:
             if (typeof key === "string") {
                 // @ts-ignore
-                return resolution.pathVariables[key];
+                return resolution.pathVariables.get(key);
             } else {
                 throw "Param key not defined";
             }
         case RouteArgtype.HEADERS:
             return request.headers;
+        case RouteArgtype.HEADER:
+            if (typeof key === "string") {
+                return request.headers.get(key);
+            } else {
+                throw "Header key not defined";
+            }
         case RouteArgtype.SESSION:
             return null;
         case RouteArgtype.FILE:
@@ -29,7 +35,8 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
         case RouteArgtype.FILES:
             return null;
         case RouteArgtype.HOST:
-            return null;
+            // @ts-ignore
+            return request.headers.host;
         case RouteArgtype.IP:
             return null;
         case RouteArgtype.BODY:

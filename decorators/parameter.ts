@@ -14,6 +14,7 @@ export enum RouteArgtype {
     FILES = 'FILES',
     HOST = 'HOST',
     IP = 'IP',
+    HEADER = "HEADER",
 }
 
 export type ArgData = object | string | number;
@@ -53,6 +54,7 @@ export function Parameter(paramtype: RouteArgtype) {
     };
 }
 
-export const RequestHeaders: (header?: string) => ParameterDecorator = Parameter(RouteArgtype.HEADERS);
+export const RequestHeaders: () => ParameterDecorator = Parameter(RouteArgtype.HEADERS);
+export const RequestHeader: (header: string) => ParameterDecorator = Parameter(RouteArgtype.HEADER);
 export const Param: (parameter: string) => ParameterDecorator = Parameter(RouteArgtype.PARAM);
 export const Body: () => ParameterDecorator = Parameter(RouteArgtype.BODY);
