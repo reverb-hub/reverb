@@ -67,13 +67,12 @@ export async function RouteExecutor(resolution: RouteResolution, request: Server
                 }
             }
         } catch (e) {
-            try {
-                const error = e as HttpError
+            if (e.status) {
                 return {
-                    status: error.status,
-                    body: error.message
+                    status: e.status,
+                    body: e.message
                 }
-            } catch (e) {
+            } else {
                 return {
                     status: HttpStatusCode.INTERNAL_SERVER_ERROR,
                     body: isString(e) ? e : undefined
