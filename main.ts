@@ -1,7 +1,7 @@
 import { Controller } from './decorators/controller.ts';
 import { Get, Post } from './decorators/mapping.ts';
 import { ReverbApplication } from './core/app.ts';
-import { Body, Param, RequestHeader } from './decorators/parameter.ts';
+import { Body, Param, QueryParam, RequestHeader } from './decorators/parameter.ts';
 import { Module } from './decorators/module.ts';
 import { Injectable } from './decorators/injectable.ts';
 import { HttpStatusCode } from './common/http-status-code.ts';
@@ -59,6 +59,11 @@ class TestController {
     @Get("/host")
     getHeaders(@RequestHeader("host") host: string) {
         return host
+    }
+
+    @Get("/query")
+    getQueryParams(@QueryParam("args") args: string | Array<string>): string | Array<string> {
+        return args
     }
 
     @Get("/error")

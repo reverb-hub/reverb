@@ -11,11 +11,19 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
         case RouteArgtype.REQUEST:
             return request;
         case RouteArgtype.SESSION:
-        case RouteArgtype.QUERY:
             return null;
+        case RouteArgtype.QUERY:
+            if (isString(key)) {
+                return (resolution?.queryParameters) ? resolution?.queryParameters[key] : undefined;
+            } else {
+                throw {
+                    status: HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    body: "Query key not defined"
+                };
+            }
         case RouteArgtype.PARAM:
             if (isString(key)) {
-                return resolution?.pathVariables?[key] : undefined;
+                return (resolution?.pathVariables) ? decodeURIComponent(resolution?.pathVariables[key]) : undefined;
             } else {
                 throw {
                     status: HttpStatusCode.INTERNAL_SERVER_ERROR,
