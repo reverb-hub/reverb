@@ -4,6 +4,7 @@ import { ServerRequest, ServerResponse } from '../deps.ts';
 import { BodyReader } from '../common/body-reader.ts';
 import { isNull, isObject, isString } from '../util/check.ts';
 import { HttpError } from '../common/http-error.ts';
+import { HttpStatusCode } from '../common/http-status-code.ts';
 
 async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, resolution: RouteResolution, key?: string): Promise<any> {
     switch (arg) {
@@ -17,7 +18,7 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
                 return resolution?.pathVariables?[key] : undefined;
             } else {
                 throw {
-                    status: 500,
+                    status: HttpStatusCode.INTERNAL_SERVER_ERROR,
                     body: "Param key not defined"
                 };
             }
@@ -28,7 +29,7 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
                 return request.headers.get(key);
             } else {
                 throw {
-                    status: 500,
+                    status: HttpStatusCode.INTERNAL_SERVER_ERROR,
                     body: "Header key not defined"
                 };
             }
@@ -41,7 +42,7 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
 
 export async function RouteExecutor(resolution: RouteResolution, request: ServerRequest): Promise<ServerResponse> {
     if (resolution?.route === undefined) {
-        return { status: 404 }
+        return { status: HttpStatusCode.NOT_FOUND }
     } else {
         const args: Array<any> = []
         if (isObject(resolution.route.argsMetadata)) {
@@ -54,14 +55,14 @@ export async function RouteExecutor(resolution: RouteResolution, request: Server
             const result = resolution.route.handler(...args)
             if (isString(result) || isObject(result)) {
                 return {
-                    status: 200,
+                    status: HttpStatusCode.OK,
                     body: JSON.stringify(result)
                 }
             } else if (isNull(result)) {
-                return { status: 204 }
+                return { status: HttpStatusCode.NO_CONTENT }
             } else {
                 return {
-                    status: 500,
+                    status: HttpStatusCode.INTERNAL_SERVER_ERROR,
                     body: "Cannot encode Body"
                 }
             }
@@ -74,7 +75,7 @@ export async function RouteExecutor(resolution: RouteResolution, request: Server
                 }
             } catch (e) {
                 return {
-                    status: 500,
+                    status: HttpStatusCode.INTERNAL_SERVER_ERROR,
                     body: isString(e) ? e : undefined
                 }
             }

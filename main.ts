@@ -4,6 +4,7 @@ import { ReverbApplication } from './core/app.ts';
 import { Body, Param, RequestHeader } from './decorators/parameter.ts';
 import { Module } from './decorators/module.ts';
 import { Injectable } from './decorators/injectable.ts';
+import { HttpStatusCode } from './common/http-status-code.ts';
 
 @Injectable()
 class AppService {
@@ -55,22 +56,22 @@ class TestController {
         this.userService.log()
     }
 
-    @Get("/headers")
+    @Get("/host")
     getHeaders(@RequestHeader("host") host: string) {
-        console.log(host)
+        return host
     }
 
     @Get("/error")
     throwError() {
         throw {
-            status: 500,
-            message: "Error was thrown"
+            status: HttpStatusCode.INTERNAL_SERVER_ERROR,
+            message: "Error test"
         }
     }
 
     @Post()
     get2(@Body() body: string) {
-        console.log(body)
+        return body
     }
 }
 
@@ -86,9 +87,14 @@ class UserController {
     }
 
     @Post("/{id}")
-    createUsers(@Param("id") id: string, @Body() body: string) {
-        console.log("ID:", id)
-        console.log("BODY:", body)
+    createUsers(
+        @Param("id") id: string,
+        @Body() body: string
+    ): object {
+        return {
+            id,
+            body
+        }
     }
 }
 
