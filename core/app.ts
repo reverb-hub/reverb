@@ -46,7 +46,7 @@ export class ReverbApplication {
         // @ts-ignore
         const mapping = this.routeResolver.resolveRoute(
           parsedRequest.url,
-          HttpMethod[parsedRequest.method],
+          HttpMethod[parsedRequest.method as keyof typeof HttpMethod],
         );
         const writer = new BufWriter(conn);
         try {
