@@ -136,7 +136,9 @@ export class RouteResolver {
 
         queryParamSections.forEach((queryParam) => {
             const [key, value] = queryParam.split("=")
-            const values = value.split(",")
+            const values = value.split(",").map(val => {
+                return decodeURIComponent(val)
+            })
 
             const existingParam = queryParams[key]
 
