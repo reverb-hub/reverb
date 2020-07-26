@@ -60,6 +60,14 @@ class TestController {
         console.log(host)
     }
 
+    @Get("/error")
+    throwError() {
+        throw {
+            status: 500,
+            message: "Error was thrown"
+        }
+    }
+
     @Post()
     get2(@Body() body: string) {
         console.log(body)

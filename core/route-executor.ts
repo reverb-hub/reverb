@@ -3,6 +3,7 @@ import { RouteArgtype } from '../decorators/parameter.ts';
 import { ServerRequest, ServerResponse } from '../deps.ts';
 import { BodyReader } from '../common/body-reader.ts';
 import { isNull, isObject, isString } from '../util/check.ts';
+import { HttpError } from '../common/http-error.ts';
 
 async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, resolution: RouteResolution, key?: string): Promise<any> {
     switch (arg) {
@@ -15,7 +16,10 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
             if (isString(key)) {
                 return resolution?.pathVariables?[key] : undefined;
             } else {
-                throw "Param key not defined";
+                throw {
+                    status: 500,
+                    body: "Param key not defined"
+                };
             }
         case RouteArgtype.HEADERS:
             return request.headers;
@@ -23,7 +27,10 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
             if (isString(key)) {
                 return request.headers.get(key);
             } else {
-                throw "Header key not defined";
+                throw {
+                    status: 500,
+                    body: "Header key not defined"
+                };
             }
         case RouteArgtype.HOST:
             return request.headers.get("host");
@@ -34,7 +41,7 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
 
 export async function RouteExecutor(resolution: RouteResolution, request: ServerRequest): Promise<ServerResponse> {
     if (resolution?.route === undefined) {
-        throw "404"
+        return { status: 404 }
     } else {
         const args: Array<any> = []
         if (isObject(resolution.route.argsMetadata)) {
@@ -43,16 +50,34 @@ export async function RouteExecutor(resolution: RouteResolution, request: Server
                 args[argMetadata.index] = await getArgFromRequest(key as RouteArgtype, request, resolution, argMetadata.data)
             }
         }
-        const result = resolution.route.handler(...args)
-        if (isString(result) || isObject(result)) {
-            return {
-                status: 200,
-                body: JSON.stringify(result)
+        try {
+            const result = resolution.route.handler(...args)
+            if (isString(result) || isObject(result)) {
+                return {
+                    status: 200,
+                    body: JSON.stringify(result)
+                }
+            } else if (isNull(result)) {
+                return { status: 204 }
+            } else {
+                return {
+                    status: 500,
+                    body: "Cannot encode Body"
+                }
             }
-        } else if (isNull(result)) {
-            return { status: 204 }
-        } else {
-            throw "500 cant encode response"
+        } catch (e) {
+            try {
+                const error = e as HttpError
+                return {
+                    status: error.status,
+                    body: error.message
+                }
+            } catch (e) {
+                return {
+                    status: 500,
+                    body: isString(e) ? e : undefined
+                }
+            }
         }
     }
 }

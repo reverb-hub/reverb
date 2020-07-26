@@ -38,18 +38,12 @@ export class ReverbApplication {
             }
             // @ts-ignore
             const mapping = this.routeResolver.resolveRoute(parsedRequest.url, HttpMethod[parsedRequest.method])
-            if (mapping) {
-                try {
-                    const writer = new BufWriter(conn);
-                    const response = await RouteExecutor(mapping, parsedRequest)
-                    await writeResponse(writer, response)
-                } catch (e) {
-                    await conn.write(this.notFound);
-                    console.log(`ERROR`, parsedRequest.url, e);
-                }
-            } else {
-                await conn.write(this.notFound);
-                console.log(`404`, parsedRequest.url);
+            const writer = new BufWriter(conn);
+            try {
+                const response = await RouteExecutor(mapping, parsedRequest)
+                await writeResponse(writer, response)
+            } catch (e) {
+                await writeResponse(writer, {status:500})
             }
         } finally {
             conn.close();
