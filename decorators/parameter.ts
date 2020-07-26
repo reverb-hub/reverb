@@ -52,4 +52,5 @@ export function Parameter(paramtype: RouteArgtype) {
 export const RequestHeaders: () => ParameterDecorator = Parameter(RouteArgtype.HEADERS);
 export const RequestHeader: (header: string) => ParameterDecorator = Parameter(RouteArgtype.HEADER);
 export const Param: (parameter: string) => ParameterDecorator = Parameter(RouteArgtype.PARAM);
+export const QueryParam: (parameter: string) => ParameterDecorator = Parameter(RouteArgtype.QUERY);
 export const Body: () => ParameterDecorator = Parameter(RouteArgtype.BODY);

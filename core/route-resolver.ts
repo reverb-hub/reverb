@@ -1,6 +1,6 @@
 import { Type } from '../decorators/module.ts';
 import { COMPONENT_TYPE, MODULE_METADATA, PATH_METADATA, METHOD_METADATA, ROUTE_ARGS_METADATA } from '../common/constants.ts';
-import { isMethod } from '../util/check.ts';
+import { isMethod, isString } from '../util/check.ts';
 import { Injector } from './injector.ts';
 import { HttpMethod } from '../common/http.ts';
 
@@ -15,6 +15,7 @@ type RoutesObject = { [path: string]: RouteSector };
 export interface RouteResolution {
     route: RouteRecord;
     pathVariables?: { [name: string]: string };
+    queryParameters?: { [name: string]: string | Array<string>};
 }
 
 class RouteSector {
@@ -129,10 +130,43 @@ export class RouteResolver {
         })
     }
 
+    private resolveQueryParameters(queryParamSection: string): { [name: string]: string | Array<string>} {
+        const queryParamSections = queryParamSection.split("&");
+        const queryParams: { [name: string]: string | Array<string>} = {};
+
+        queryParamSections.forEach((queryParam) => {
+            const [key, value] = queryParam.split("=")
+            const values = value.split(",")
+
+            const existingParam = queryParams[key]
+
+            if (existingParam) {
+                if (isString(existingParam)) {
+                    queryParams[key] = [existingParam].concat(values)
+                } else {
+                    queryParams[key] = existingParam.concat(values)
+                }
+            } else {
+                if (values.length === 1) {
+                    queryParams[key] = values[0]
+                } else {
+                    queryParams[key] = values
+                }
+            }
+        })
+
+        return queryParams;
+    }
+
     resolveRoute(uri: string, method: HttpMethod): RouteResolution {
-        const sections = uri.split("/");
+        const [url, queryParams] = uri.split("?");
+        const sections = url.split("/");
         sections.shift();
-        return this.routeMap.resolveSubRoute(sections, method);
+        const resolution = this.routeMap.resolveSubRoute(sections, method);
+        if (queryParams) {
+            resolution.queryParameters = this.resolveQueryParameters(queryParams)
+        }
+        return resolution
     }
 
     printRoutes() {
