@@ -1,5 +1,5 @@
 export interface HttpMethodLine {
-    method: string;
-    uri: string;
-    version?: string;
+  method: string;
+  uri: string;
+  version?: string;
 }
