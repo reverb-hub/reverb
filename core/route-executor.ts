@@ -23,7 +23,7 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
             }
         case RouteArgtype.PARAM:
             if (isString(key)) {
-                return (resolution?.pathVariables) ? resolution?.pathVariables[key] : undefined;
+                return (resolution?.pathVariables) ? decodeURIComponent(resolution?.pathVariables[key]) : undefined;
             } else {
                 throw {
                     status: HttpStatusCode.INTERNAL_SERVER_ERROR,
