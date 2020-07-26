@@ -11,6 +11,7 @@ async function getArgFromRequest(arg: RouteArgtype, request: ServerRequest, reso
         case RouteArgtype.REQUEST:
             return request;
         case RouteArgtype.SESSION:
+            return null;
         case RouteArgtype.QUERY:
             if (isString(key)) {
                 return (resolution?.queryParameters) ? resolution?.queryParameters[key] : undefined;
