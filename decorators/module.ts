@@ -15,9 +15,11 @@ export function Module(metadata: ModuleMetadata): ClassDecorator {
     validateModuleKeys(propsKeys);
 
     return (target: Function) => {
+        // Component type is MODULE
+        Reflect.defineMetadata(COMPONENT_TYPE.MODULE, true, target);
         for (const property in metadata) {
             if (metadata.hasOwnProperty(property)) {
-                Reflect.defineMetadata(COMPONENT_TYPE.MODULE, true, target);
+                // Add module metadata entries to respective keys on our module
                 Reflect.defineMetadata(property, (metadata as any)[property], target);
             }
         }

@@ -11,6 +11,7 @@ export const MODULE_METADATA_KEYS = [
     ...Object.values(MODULE_METADATA)
 ];
 export type MODULE_METADATA_KEYS_TYPE = typeof MODULE_METADATA[keyof typeof MODULE_METADATA];
+export const COMPONENT_MODULE = "__componentModule___";
 export const COMPONENT_TYPE = {
     PARAMETER: '__parameter__',
     CONTROLLER: '__controller__',

@@ -3,13 +3,16 @@ import { Type } from '../decorators/module.ts';
 import { RouteResolver } from './route-resolver.ts';
 import { HttpMethod } from '../common/http.ts';
 import { RouteExecutor } from './route-executor.ts';
+import { ModuleBuilder } from './module-builder.ts';
 
 
 export class ReverbApplication {
     private routeResolver: RouteResolver;
+    private rootModuleBuilder: ModuleBuilder;
 
     constructor(appModule: Type<any>) {
-        this.routeResolver = new RouteResolver(appModule)
+        this.rootModuleBuilder = new ModuleBuilder(appModule);
+        this.routeResolver = new RouteResolver(this.rootModuleBuilder.controllers());
     }
 
     printRoutes() {

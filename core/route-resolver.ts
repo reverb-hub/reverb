@@ -1,7 +1,6 @@
 import { Type } from '../decorators/module.ts';
 import { COMPONENT_TYPE, MODULE_METADATA, PATH_METADATA, METHOD_METADATA, ROUTE_ARGS_METADATA } from '../common/constants.ts';
 import { isMethod } from '../util/check.ts';
-import { Injector } from './injector.ts';
 import { HttpMethod } from '../common/http.ts';
 
 interface RouteRecord {
@@ -93,34 +92,24 @@ class RouteSector {
 
 export class RouteResolver {
     private readonly routeMap: RouteSector = new RouteSector();
-    constructor(private appModule: Type<any>) {
+    constructor(private controllerInstances: any[]) {
         this.resolveRoutes();
     }
 
     private resolveRoutes() {
-        if (Reflect.getMetadata(COMPONENT_TYPE.MODULE, this.appModule) !== true) {
-            throw "non module supplied"
-        }
-
-        const controllers = Reflect.getMetadata(MODULE_METADATA.CONTROLLERS, this.appModule)
-
-        controllers.forEach((controller: Type<any>) => {
-            if (Reflect.getMetadata(COMPONENT_TYPE.CONTROLLER, controller) !== true) {
-                throw "non controller in controllers"
-            }
-            const controllerInstance = Injector.resolve<any>(controller)
-            const path = Reflect.getMetadata(PATH_METADATA, controller)
-            const methods = Object.getOwnPropertyNames(controller.prototype).filter((property) => {
-                return isMethod(controller.prototype, property) && (Reflect.getMetadata(COMPONENT_TYPE.MAPPING, controller.prototype[property]) === true)
+        this.controllerInstances.forEach((controllerInstance: any) => {
+            const path = Reflect.getMetadata(PATH_METADATA, controllerInstance.constructor)
+            const methods = Object.getOwnPropertyNames(controllerInstance.constructor.prototype).filter((property) => {
+                return isMethod(controllerInstance.constructor.prototype, property) && (Reflect.getMetadata(COMPONENT_TYPE.MAPPING, controllerInstance.constructor.prototype[property]) === true)
             })
 
             methods.forEach((method) => {
-                const mappingPath = Reflect.getMetadata(PATH_METADATA, controller.prototype[method]);
+                const mappingPath = Reflect.getMetadata(PATH_METADATA, controllerInstance.constructor.prototype[method]);
                 const fullPathSections = (path + mappingPath).split("/");
                 fullPathSections.shift();
-                const methodType: HttpMethod = Reflect.getMetadata(METHOD_METADATA, controller.prototype[method]);
+                const methodType: HttpMethod = Reflect.getMetadata(METHOD_METADATA, controllerInstance.constructor.prototype[method]);
                 // TODO include this in routes
-                const paramMetadata = Reflect.getMetadata(ROUTE_ARGS_METADATA, controller.prototype.constructor, method)
+                const paramMetadata = Reflect.getMetadata(ROUTE_ARGS_METADATA, controllerInstance.constructor.prototype.constructor, method)
                 this.routeMap.addRoute(fullPathSections, methodType, {
                     handler: (controllerInstance[method] as (...args: any) => any).bind(controllerInstance),
                     argsMetadata: paramMetadata,
