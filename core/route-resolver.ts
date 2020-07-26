@@ -1,9 +1,8 @@
 import { Type } from '../decorators/module.ts';
 import { COMPONENT_TYPE, MODULE_METADATA, PATH_METADATA, METHOD_METADATA, ROUTE_ARGS_METADATA } from '../common/constants.ts';
-import { isConstructor, isMethod } from '../util/check.ts';
+import { isMethod } from '../util/check.ts';
 import { Injector } from './injector.ts';
 import { HttpMethod } from '../common/http.ts';
-import { ServerRequest, Response } from '../deps.ts';
 
 interface RouteRecord {
     handler(...args: any): any;

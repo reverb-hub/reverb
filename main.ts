@@ -1,13 +1,9 @@
-import { HttpRequest } from './common/http-request.ts';
 import { Controller } from './decorators/controller.ts';
-import { Get, Mapping, Post } from './decorators/mapping.ts';
-import { HttpMethod } from './common/http.ts';
+import { Get, Post } from './decorators/mapping.ts';
 import { ReverbApplication } from './core/app.ts';
-import { Body, Param, RequestHeader, RequestHeaders } from './decorators/parameter.ts';
+import { Body, Param, RequestHeader } from './decorators/parameter.ts';
 import { Module } from './decorators/module.ts';
-import './util/reflect.ts';
 import { Injectable } from './decorators/injectable.ts';
-import { Injector } from './core/injector.ts';
 
 @Injectable()
 class AppService {
@@ -18,11 +14,31 @@ class AppService {
 
 }
 
+enum UserRole {
+    ADMIN = 'ADMIN',
+    USER = 'USER',
+    GUEST = 'GUEST'
+}
+
+interface User {
+    name: string,
+    id: number,
+    role: UserRole
+}
+
 @Injectable()
 class UserService {
 
     log() {
         console.log("log from user service")
+    }
+
+    getUser(): User {
+        return {
+            name: "username",
+            id: 1,
+            role: UserRole.ADMIN
+        }
     }
 
 }
@@ -57,8 +73,8 @@ class UserController {
     }
 
     @Get("/{id}")
-    users(@Param("id") id: string) {
-        console.log(id)
+    users(@Param("id") id: string): User {
+        return this.userService.getUser()
     }
 
     @Post("/{id}")

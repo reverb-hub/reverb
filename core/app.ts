@@ -1,4 +1,4 @@
-import { BufReader, readRequest } from '../deps.ts';
+import { BufReader, BufWriter, readRequest, writeResponse } from '../deps.ts';
 import { Type } from '../decorators/module.ts';
 import { RouteResolver } from './route-resolver.ts';
 import { HttpMethod } from '../common/http.ts';
@@ -40,8 +40,9 @@ export class ReverbApplication {
             const mapping = this.routeResolver.resolveRoute(parsedRequest.url, HttpMethod[parsedRequest.method])
             if (mapping) {
                 try {
-                    RouteExecutor(mapping, parsedRequest)
-                    await conn.write(this.response);
+                    const writer = new BufWriter(conn);
+                    const response = await RouteExecutor(mapping, parsedRequest)
+                    await writeResponse(writer, response)
                 } catch (e) {
                     await conn.write(this.notFound);
                     console.log(`ERROR`, parsedRequest.url, e);
