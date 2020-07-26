@@ -1,28 +1,20 @@
-import { BufReader, readRequest } from '../deps.ts';
+import { BufReader, BufWriter, readRequest, writeResponse } from '../deps.ts';
 import { Type } from '../decorators/module.ts';
 import { RouteResolver } from './route-resolver.ts';
 import { HttpMethod } from '../common/http.ts';
+import { RouteExecutor } from './route-executor.ts';
 
-const decoder = new TextDecoder();
 
 export class ReverbApplication {
     private routeResolver: RouteResolver;
 
     constructor(appModule: Type<any>) {
         this.routeResolver = new RouteResolver(appModule)
-
-        this.routeResolver.printRoutes();
-
-        console.log(this.routeResolver.resolveRoute("/api/test", HttpMethod.POST));
-        console.log(this.routeResolver.resolveRoute("/api/users/10", HttpMethod.GET));
     }
 
-    response = new TextEncoder().encode(
-        "HTTP/1.1 200 OK\r\nContent-Length: 12\r\n\r\nHello World\n",
-    );
-    notFound = new TextEncoder().encode(
-        "HTTP/1.1 404 OK\r\n\r\n",
-    );
+    printRoutes() {
+        this.routeResolver.printRoutes();
+    }
 
     async listen(port: number, host: string = "127.0.0.1") {
         const listener = Deno.listen({ hostname: host, port: port });
@@ -36,27 +28,18 @@ export class ReverbApplication {
         try {
             const reader = new BufReader(conn);
             const parsedRequest = await readRequest(conn, reader);
-            if (parsedRequest == null) {
-                throw "request is null?";
-            }
-            let bodyText = "";
-            const bodyReader = new BufReader(parsedRequest.body);
-            let lineRes = await bodyReader.readLine();
-            while (lineRes != null) {
-                const lineText = decoder.decode(lineRes?.line);
-                bodyText += lineText + "\n";
-                lineRes = await bodyReader.readLine();
-            }
-            // @ts-ignore
-            const mapping = this.routeResolver.resolveRoute(parsedRequest.url, HttpMethod[parsedRequest.method])
-            if (mapping) {
+            if (parsedRequest != null) {
                 // @ts-ignore
-                console.log(mapping)
-                await conn.write(this.response);
-                console.log(`200`);
+                const mapping = this.routeResolver.resolveRoute(parsedRequest.url, HttpMethod[parsedRequest.method])
+                const writer = new BufWriter(conn);
+                try {
+                    const response = await RouteExecutor(mapping, parsedRequest)
+                    await writeResponse(writer, response)
+                } catch (e) {
+                    await writeResponse(writer, {status:500})
+                }
             } else {
-                await conn.write(this.notFound);
-                console.log(`404`, parsedRequest.url);
+                // ignore
             }
         } finally {
             conn.close();

@@ -1,13 +1,10 @@
-import { HttpRequest } from './common/http-request.ts';
 import { Controller } from './decorators/controller.ts';
-import { Get, Mapping, Post } from './decorators/mapping.ts';
-import { HttpMethod } from './common/http.ts';
+import { Get, Post } from './decorators/mapping.ts';
 import { ReverbApplication } from './core/app.ts';
-import { Body, Param, RequestHeaders } from './decorators/parameter.ts';
+import { Body, Param, RequestHeader } from './decorators/parameter.ts';
 import { Module } from './decorators/module.ts';
-import './util/reflect.ts';
 import { Injectable } from './decorators/injectable.ts';
-import { Injector } from './core/injector.ts';
+import { HttpStatusCode } from './common/http-status-code.ts';
 
 @Injectable()
 class AppService {
@@ -18,6 +15,18 @@ class AppService {
 
 }
 
+enum UserRole {
+    ADMIN = 'ADMIN',
+    USER = 'USER',
+    GUEST = 'GUEST'
+}
+
+interface User {
+    name: string,
+    id: number,
+    role: UserRole
+}
+
 @Injectable()
 class UserService {
 
@@ -25,43 +34,73 @@ class UserService {
         console.log("log from user service")
     }
 
+    getUser(): User {
+        return {
+            name: "username",
+            id: 1,
+            role: UserRole.ADMIN
+        }
+    }
+
 }
 
-@Controller("/api")
+@Controller("/api/test")
 class TestController {
 
     constructor(private appService: AppService, private userService: UserService) {
     }
 
-    @Get("/test")
-    get(@Body() body: string, @RequestHeaders() headers: string) {
+    @Get()
+    get() {
         this.appService.log()
         this.userService.log()
     }
 
-    @Post("/test")
+    @Get("/host")
+    getHeaders(@RequestHeader("host") host: string) {
+        return host
+    }
+
+    @Get("/error")
+    throwError() {
+        throw {
+            status: HttpStatusCode.INTERNAL_SERVER_ERROR,
+            message: "Error test"
+        }
+    }
+
+    @Post()
     get2(@Body() body: string) {
-        console.log(body)
+        return body
+    }
+}
+
+@Controller("/api/users")
+class UserController {
+
+    constructor(private appService: AppService, private userService: UserService) {
     }
 
-    @Mapping(HttpMethod.GET, "/users/{id}")
-    users(@Body() body: string, @Param("id") id: string) {
-        console.log(body)
+    @Get("/{id}")
+    users(@Param("id") id: string): User {
+        return this.userService.getUser()
     }
 
-    @Mapping(HttpMethod.POST, "/users")
-    createUsers(@Body() body: string) {
-        console.log(body)
-    }
-
-    notMapping() {
-        console.log("this is not a mapping")
+    @Post("/{id}")
+    createUsers(
+        @Param("id") id: string,
+        @Body() body: string
+    ): object {
+        return {
+            id,
+            body
+        }
     }
 }
 
 @Module({
-    controllers: [TestController],
-    providers: [AppService]
+    controllers: [TestController, UserController],
+    providers: [AppService, UserService]
 })
 class AppModule { }
 

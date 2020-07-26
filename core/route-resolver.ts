@@ -1,9 +1,8 @@
 import { Type } from '../decorators/module.ts';
 import { COMPONENT_TYPE, MODULE_METADATA, PATH_METADATA, METHOD_METADATA, ROUTE_ARGS_METADATA } from '../common/constants.ts';
-import { isConstructor, isMethod } from '../util/check.ts';
+import { isMethod } from '../util/check.ts';
 import { Injector } from './injector.ts';
 import { HttpMethod } from '../common/http.ts';
-import { ServerRequest, Response } from '../deps.ts';
 
 interface RouteRecord {
     handler(...args: any): any;
@@ -13,7 +12,7 @@ interface RouteRecord {
 
 type RoutesObject = { [path: string]: RouteSector };
 
-interface RouteResolution {
+export interface RouteResolution {
     route: RouteRecord;
     pathVariables?: { [name: string]: string };
 }
@@ -36,6 +35,7 @@ class RouteSector {
         } else {
             const subPath = path.shift()!;
             if (subPath.startsWith("{") && subPath.endsWith("}")) {
+                // @ts-ignore
                 const varName = subPath.replaceAll("{", "").replaceAll("}", "");
                 if (!this.varSectors[varName]) {
                     this.varSectors[varName] = new RouteSector();
@@ -122,7 +122,7 @@ export class RouteResolver {
                 // TODO include this in routes
                 const paramMetadata = Reflect.getMetadata(ROUTE_ARGS_METADATA, controller.prototype.constructor, method)
                 this.routeMap.addRoute(fullPathSections, methodType, {
-                    handler: controllerInstance[method] as (...args: any) => any,
+                    handler: (controllerInstance[method] as (...args: any) => any).bind(controllerInstance),
                     argsMetadata: paramMetadata,
                 });
             })

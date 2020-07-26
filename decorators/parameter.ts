@@ -1,32 +1,28 @@
 import { ROUTE_ARGS_METADATA } from '../common/constants.ts';
 import { COMPONENT_TYPE } from '../common/constants.ts';
 
-export enum RouteParamtypes {
+export enum RouteArgtype {
     REQUEST = 'REQUEST',
-    RESPONSE = 'RESPONSE',
-    NEXT = 'NEXT',
     BODY = 'BODY',
     QUERY = 'QUERY',
     PARAM = 'PARAM',
     HEADERS = 'HEADERS',
     SESSION = 'SESSION',
-    FILE = 'FILE',
-    FILES = 'FILES',
     HOST = 'HOST',
-    IP = 'IP',
+    HEADER = "HEADER",
 }
 
-export type ParamData = object | string | number;
+export type ArgData = object | string | number;
 export interface RouteParamMetadata {
     index: number;
-    data?: ParamData;
+    data?: ArgData;
 }
 
 export function assignMetadata<TParamtype = any, TArgs = any>(
     args: TArgs,
     paramtype: TParamtype,
     index: number,
-    data?: ParamData
+    data?: ArgData
 ) {
     return {
         ...args,
@@ -37,11 +33,11 @@ export function assignMetadata<TParamtype = any, TArgs = any>(
     };
 }
 
-export function Parameter(paramtype: RouteParamtypes) {
-    return (data?: ParamData): ParameterDecorator => (target, key, index) => {
+export function Parameter(paramtype: RouteArgtype) {
+    return (data?: ArgData): ParameterDecorator => (target, key, index) => {
         const args = Reflect.getMetadata(ROUTE_ARGS_METADATA, target.constructor, key) || {};
         Reflect.defineMetadata(COMPONENT_TYPE.PARAMETER, true, target.constructor);
-        Reflect.defineMetadata(ROUTE_ARGS_METADATA, assignMetadata<RouteParamtypes, Record<number, RouteParamMetadata>>(
+        Reflect.defineMetadata(ROUTE_ARGS_METADATA, assignMetadata<RouteArgtype, Record<number, RouteParamMetadata>>(
                 args,
                 paramtype,
                 index,
@@ -53,6 +49,7 @@ export function Parameter(paramtype: RouteParamtypes) {
     };
 }
 
-export const RequestHeaders: (header?: string) => ParameterDecorator = Parameter(RouteParamtypes.HEADERS);
-export const Param: (parameter: string) => ParameterDecorator = Parameter(RouteParamtypes.PARAM);
-export const Body: () => ParameterDecorator = Parameter(RouteParamtypes.BODY);
+export const RequestHeaders: () => ParameterDecorator = Parameter(RouteArgtype.HEADERS);
+export const RequestHeader: (header: string) => ParameterDecorator = Parameter(RouteArgtype.HEADER);
+export const Param: (parameter: string) => ParameterDecorator = Parameter(RouteArgtype.PARAM);
+export const Body: () => ParameterDecorator = Parameter(RouteArgtype.BODY);
