@@ -1,0 +1,1 @@
+deno test --allow-net -c tsconfig.json

@@ -25,13 +25,17 @@ export class ModuleBuilder {
   }
 
   private resolveController<T>(target: Type<any>): T {
+    if (this.controllerInstances.has(target)) {
+      // If we already have a instance of this return it.
+      return this.controllerInstances.get(target);
+    }
     // tokens are required dependencies, while injections are resolved tokens from the Injector
     const tokens = Reflect.getMetadata('design:paramtypes', target) || [];
     const injections = tokens.map((token: Type<any>) => this.resolveProvider<any>(token));
 
     const controller = new target(...injections);
     this.controllerInstances.set(target, controller);
-    return new target(...injections);
+    return controller;
   }
 
   private resolveProvider<T>(target: Type<any>): T {
