@@ -1,4 +1,11 @@
-import { Injectable, Controller, Module, ReverbApplication, Get, Param } from "../mod.ts";
+import {
+  Injectable,
+  Controller,
+  Module,
+  ReverbApplication,
+  Get,
+  Param,
+} from "../mod.ts";
 import { assertThrows, assertEquals } from "../deps.ts";
 
 Deno.test("errorMissingProvider", function (): void {

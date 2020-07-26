@@ -3,9 +3,8 @@ import { Type } from "../decorators/module.ts";
 import { COMPONENT_TYPE } from "../common/constants.ts";
 
 export class ModuleBuilder {
-
   // Map<Constructable type, Constructed instance>
-  private readonly controllerInstances:Map<Type<any>, any> = new Map();
+  private readonly controllerInstances: Map<Type<any>, any> = new Map();
   // Map<Constructable type, Constructed instance>
   private readonly providerInstances: Map<Type<any>, any> = new Map();
 
@@ -18,9 +17,12 @@ export class ModuleBuilder {
       throw "non module supplied";
     }
 
-    const controllers = Reflect.getMetadata(MODULE_METADATA.CONTROLLERS, this.appModule);
+    const controllers = Reflect.getMetadata(
+      MODULE_METADATA.CONTROLLERS,
+      this.appModule,
+    );
     controllers.forEach((controller: Type<any>) => {
-      const controllerInstance = this.resolveController<any>(controller)
+      const controllerInstance = this.resolveController<any>(controller);
     });
   }
 
@@ -30,8 +32,10 @@ export class ModuleBuilder {
       return this.controllerInstances.get(target);
     }
     // tokens are required dependencies, while injections are resolved tokens from the Injector
-    const tokens = Reflect.getMetadata('design:paramtypes', target) || [];
-    const injections = tokens.map((token: Type<any>) => this.resolveProvider<any>(token));
+    const tokens = Reflect.getMetadata("design:paramtypes", target) || [];
+    const injections = tokens.map((token: Type<any>) =>
+      this.resolveProvider<any>(token)
+    );
 
     const controller = new target(...injections);
     this.controllerInstances.set(target, controller);
@@ -43,12 +47,17 @@ export class ModuleBuilder {
       // If we already have a instance of this return it.
       return this.providerInstances.get(target);
     }
-    const moduleProviers: Type<any>[] = Reflect.getMetadata(MODULE_METADATA.PROVIDERS, this.appModule);
+    const moduleProviers: Type<any>[] = Reflect.getMetadata(
+      MODULE_METADATA.PROVIDERS,
+      this.appModule,
+    );
     if (!moduleProviers.includes(target)) {
       throw "Provider not included in module: " + target.name;
     }
-    const tokens = Reflect.getMetadata('design:paramtypes', target) || [];
-    const injections = tokens.map((token: Type<any>) => this.resolveProvider<any>(token));
+    const tokens = Reflect.getMetadata("design:paramtypes", target) || [];
+    const injections = tokens.map((token: Type<any>) =>
+      this.resolveProvider<any>(token)
+    );
 
     // Instance our new provider and insert it into our map
     const provider = new target(...injections);
@@ -57,7 +66,6 @@ export class ModuleBuilder {
   }
 
   controllers(): any[] {
-    return [ ...this.controllerInstances.values() ];
+    return [...this.controllerInstances.values()];
   }
-
 }
