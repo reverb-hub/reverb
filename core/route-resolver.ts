@@ -7,7 +7,6 @@ import {
   ROUTE_ARGS_METADATA,
 } from "../common/constants.ts";
 import { isMethod, isString } from "../util/check.ts";
-import { Injector } from "./injector.ts";
 import { HttpMethod } from "../common/http.ts";
 
 interface RouteRecord {
